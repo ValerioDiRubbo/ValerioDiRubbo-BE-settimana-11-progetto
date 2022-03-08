@@ -61,13 +61,20 @@ public class CategoriaService {
 	}
 
 	public void delete(Long id) {
-		Categoria c = categoriaRepository.findById(id).get();
-		List<Libro> listalibri = libroRepository.findByCategoriaNome(c.getNome());
-		for (Libro libro : listalibri) {
-			libro.getCategoria().remove(c);
-			libroRepository.save(libro);
+		Optional<Categoria> c = categoriaRepository.findById(id);
+		if (c.isPresent()) {
+			Categoria categoriaDelete = c.get();
+			List<Libro> listalibri = libroRepository.findByCategoriaNome(categoriaDelete.getNome());
+			for (Libro libro : listalibri) {
+				libro.getCategoria().remove(categoriaDelete);
+				libroRepository.save(libro);
+			}
+			categoriaRepository.deleteById(id);
+		} else {
+			throw new LibreriaException("Cancellazione con: " + id + " non riuscita");
 		}
-		categoriaRepository.deleteById(id);
+		
+		
 
 	}
 

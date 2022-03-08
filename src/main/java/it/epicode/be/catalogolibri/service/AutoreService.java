@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import it.epicode.be.catalogolibri.common.util.exception.LibreriaException;
 import it.epicode.be.catalogolibri.model.Autore;
+import it.epicode.be.catalogolibri.model.Categoria;
 import it.epicode.be.catalogolibri.model.Libro;
 import it.epicode.be.catalogolibri.repository.AutoreRepository;
 import it.epicode.be.catalogolibri.repository.LibroRepository;
@@ -63,14 +64,20 @@ public class AutoreService {
 	}
 
 	public void delete(Long id) {
-		Autore a = autoreRepository.findById(id).get();
-		List<Libro> listalibri = libroRepository.findByAutoreCognome(a.getCognome());
+		Optional<Autore> a = autoreRepository.findById(id);
+		if (a.isPresent()) {
+			Autore autoreDelete = a.get();
+			List<Libro> listalibri = libroRepository.findByAutoreCognome(autoreDelete.getCognome());
 
-		for (Libro libro : listalibri) {
-			libro.getAutore().remove(a);
-			libroRepository.save(libro);
+			for (Libro libro : listalibri) {
+				libro.getAutore().remove(autoreDelete);
+				libroRepository.save(libro);
 
+			}
+			autoreRepository.deleteById(id);
+		} else {
+			throw new LibreriaException("Cancellazione con: " + id + " non riuscita");
 		}
-		autoreRepository.deleteById(id);
+
 	}
 }
